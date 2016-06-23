@@ -23,6 +23,7 @@ import com.android.volley.Request;
 import com.android.volley.Request.Method;
 import com.android.volley.Response.ProgressListener;
 import com.android.volley.error.AuthFailureError;
+import com.android.volley.misc.MultipartFile;
 import com.android.volley.request.MultiPartRequest;
 import com.android.volley.request.MultiPartRequest.MultiPartParam;
 
@@ -206,7 +207,7 @@ public class HurlStack implements HttpStack {
 		connection.setRequestProperty(HEADER_CONTENT_TYPE, String.format(CONTENT_TYPE_MULTIPART, charset, curTime));
 		
 		Map<String, MultiPartParam> multipartParams = ((MultiPartRequest<?>) request).getMultipartParams();
-		Map<String, String> filesToUpload = ((MultiPartRequest<?>) request).getFilesToUpload();
+		List<MultipartFile> filesToUpload = ((MultiPartRequest<?>) request).getFilesToUpload();
 		
 		if (((MultiPartRequest<?>) request).isFixedStreamingMode()) {
 			int contentLength = getContentLengthForMultipartRequest(boundary, multipartParams, filesToUpload);
@@ -233,9 +234,9 @@ public class HurlStack implements HttpStack {
 						.flush();
 			}
 
-			for (Entry<String, String> fileToUpload : filesToUpload.entrySet()) {
+			for (MultipartFile fileToUpload : filesToUpload) {
 
-				File file = new File(fileToUpload.getValue());
+				File file = new File(fileToUpload.filePath);
 
 				if (!file.exists()) {
 					throw new IOException(String.format("File not found: %s", file.getAbsolutePath()));
@@ -247,7 +248,7 @@ public class HurlStack implements HttpStack {
 
 				writer.append(boundary)
 						.append(CRLF)
-						.append(String.format(HEADER_CONTENT_DISPOSITION + COLON_SPACE + FORM_DATA + SEMICOLON_SPACE + FILENAME, fileToUpload.getKey(), file.getName()))
+						.append(String.format(HEADER_CONTENT_DISPOSITION + COLON_SPACE + FORM_DATA + SEMICOLON_SPACE + FILENAME, fileToUpload.name, file.getName()))
 						.append(CRLF).append(HEADER_CONTENT_TYPE + COLON_SPACE + CONTENT_TYPE_OCTET_STREAM).append(CRLF)
 						.append(HEADER_CONTENT_TRANSFER_ENCODING + COLON_SPACE + BINARY).append(CRLF).append(CRLF).flush();
 

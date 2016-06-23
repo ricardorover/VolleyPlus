@@ -20,6 +20,7 @@ import com.android.volley.Request;
 import com.android.volley.Request.Method;
 import com.android.volley.Response.ProgressListener;
 import com.android.volley.error.AuthFailureError;
+import com.android.volley.misc.MultipartFile;
 import com.android.volley.request.MultiPartRequest;
 import com.android.volley.request.MultiPartRequest.MultiPartParam;
 import com.android.volley.toolbox.multipart.FilePart;
@@ -164,14 +165,14 @@ public class HttpClientStack implements HttpStack {
 			httpRequest.addHeader(HEADER_CONTENT_TYPE, String.format(CONTENT_TYPE_MULTIPART, charset, multipartEntity.getBoundary()));
 
 			final Map<String, MultiPartParam> multipartParams = ((MultiPartRequest<?>) request).getMultipartParams();
-			final Map<String, String> filesToUpload = ((MultiPartRequest<?>) request).getFilesToUpload();
+			final List<MultipartFile> filesToUpload = ((MultiPartRequest<?>) request).getFilesToUpload();
 
 			for (Map.Entry<String, MultiPartParam> multipartParam : multipartParams.entrySet()) {
 				multipartEntity.addPart(new StringPart(multipartParam.getKey(), multipartParam.getValue().value));
 			}
 
-			for (Map.Entry<String, String> fileToUpload : filesToUpload.entrySet()) {
-				File file = new File(fileToUpload.getValue());
+			for (MultipartFile fileToUpload : filesToUpload) {
+				File file = new File(fileToUpload.filePath);
 
 				if (!file.exists()) {
 					throw new IOException(String.format("File not found: %s", file.getAbsolutePath()));
@@ -181,7 +182,7 @@ public class HttpClientStack implements HttpStack {
 					throw new IOException(String.format("File is a directory: %s", file.getAbsolutePath()));
 				}
 
-				FilePart filePart = new FilePart(fileToUpload.getKey(), file, null, null);
+				FilePart filePart = new FilePart(fileToUpload.name, file, null, null);
 				multipartEntity.addPart(filePart);
 			}
 			httpRequest.setEntity(multipartEntity);

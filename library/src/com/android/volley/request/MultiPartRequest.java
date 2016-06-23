@@ -7,8 +7,11 @@ import com.android.volley.Response;
 import com.android.volley.Response.ErrorListener;
 import com.android.volley.Response.Listener;
 import com.android.volley.Response.ProgressListener;
+import com.android.volley.misc.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,7 +25,7 @@ public abstract class MultiPartRequest<T> extends Request<T> implements Progress
 	private Listener<T> mListener;
 	private ProgressListener mProgressListener;
 	private Map<String, MultiPartParam> mMultipartParams = null;
-	private Map<String, String> mFileUploads = null;
+	private List<MultipartFile> mFileUploads = null;
 	public static final int TIMEOUT_MS = 30000;
 	private boolean isFixedStreamingMode;
 
@@ -39,8 +42,8 @@ public abstract class MultiPartRequest<T> extends Request<T> implements Progress
 		super(method, url, Priority.NORMAL, errorListener, new DefaultRetryPolicy(TIMEOUT_MS, DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
 				DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 		mListener = listener;
-		mMultipartParams = new HashMap<String, MultiPartRequest.MultiPartParam>();
-		mFileUploads = new HashMap<String, String>();
+		mMultipartParams = new HashMap<>();
+		mFileUploads = new ArrayList<>();
 
 	}
 
@@ -77,8 +80,7 @@ public abstract class MultiPartRequest<T> extends Request<T> implements Progress
 	 * @return The Multipart request for chaining method calls
 	 */
 	public MultiPartRequest<T> addFile(String name, String filePath) {
-
-		mFileUploads.put(name, filePath);
+		mFileUploads.add(new MultipartFile(name, filePath));
 		return this;
 	}
 
@@ -143,7 +145,7 @@ public abstract class MultiPartRequest<T> extends Request<T> implements Progress
 	 * 
 	 * @return A map of all the files to be uploaded for this request
 	 */
-	public Map<String, String> getFilesToUpload() {
+	public List<MultipartFile> getFilesToUpload() {
 		return mFileUploads;
 	}
 

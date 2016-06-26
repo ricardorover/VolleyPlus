@@ -1,11 +1,11 @@
 package com.android.volley.misc;
 
 import com.android.volley.request.MultiPartRequest;
-import com.android.volley.toolbox.multipart.MultipartEntity;
 
 import org.apache.http.util.EncodingUtils;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,7 +41,7 @@ public class MultipartUtils {
 
     public static final byte[] CRLF_BYTES = EncodingUtils.getAsciiBytes(CRLF);
 
-    public static int getContentLengthForMultipartRequest(String boundary, Map<String, MultiPartRequest.MultiPartParam> multipartParams, Map<String, String> filesToUpload) {
+    public static int getContentLengthForMultipartRequest(String boundary, Map<String, MultiPartRequest.MultiPartParam> multipartParams, List<MultipartFile> filesToUpload) {
         final int boundaryLength = boundary.getBytes().length;
         int contentLength = 0;
         for (Map.Entry<String, MultiPartRequest.MultiPartParam> multipartParam : multipartParams.entrySet()) {
@@ -54,10 +54,10 @@ public class MultipartUtils {
             contentLength += size;
         }
 
-        for (Map.Entry<String, String> filetoUpload : filesToUpload.entrySet()) {
-            File file = new File(filetoUpload.getValue());
+        for (MultipartFile filetoUpload : filesToUpload) {
+            File file = new File(filetoUpload.filePath);
             int size = boundaryLength +
-                    CRLF_LENGTH + HEADER_CONTENT_DISPOSITION_LENGTH + COLON_SPACE_LENGTH + String.format(FORM_DATA + SEMICOLON_SPACE + FILENAME, filetoUpload.getKey(), file.getName()).getBytes().length +
+                    CRLF_LENGTH + HEADER_CONTENT_DISPOSITION_LENGTH + COLON_SPACE_LENGTH + String.format(FORM_DATA + SEMICOLON_SPACE + FILENAME, filetoUpload.name, file.getName()).getBytes().length +
                     CRLF_LENGTH + HEADER_CONTENT_TYPE_LENGTH + COLON_SPACE_LENGTH + CONTENT_TYPE_OCTET_STREAM_LENGTH +
                     CRLF_LENGTH + HEADER_CONTENT_TRANSFER_ENCODING_LENGTH + COLON_SPACE_LENGTH + BINARY_LENGTH + CRLF_LENGTH + CRLF_LENGTH;
 
